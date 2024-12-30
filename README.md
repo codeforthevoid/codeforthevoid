@@ -192,47 +192,7 @@ The application can be scaled horizontally through:
 - Redis cluster
 - PostgreSQL replication
 
-## Security
-
-- JWT-based authentication
-- Rate limiting
-- Input validation
-- XSS prevention
-- CORS configuration
-- Regular dependency updates
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
 
 ## License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- OpenAI for GPT models
-- FastAPI team for the amazing framework
-- Contributors and maintainers
-
-## Support
-
-For support, please:
-1. Create a new issue if necessary
-
-## Roadmap
-
-- [ ] Multiple model support
-- [ ] Custom AI model training
-- [ ] Advanced visualization effects
-- [ ] Mobile support
-- [ ] API versioning
-- [ ] Performance optimizations
-
-## Contact
-
-- Maintainer: codeforthevoid
