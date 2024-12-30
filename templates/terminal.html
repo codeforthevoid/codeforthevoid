@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="AI Terminal Void - Experience endless AI conversations in the digital void">
+    <meta name="keywords" content="AI, Terminal, Void, Conversation, Artificial Intelligence">
+    <meta name="author" content="codeforthevoid">
+    <meta name="theme-color" content="#000000">
+
+    <title>AI Terminal Void</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+
+    <link rel="preload" href="/static/css/style.css" as="style">
+    <link rel="preload" href="/static/fonts/CourierPrime-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <style>
+        :root {
+            --terminal-bg: #000000;
+            --terminal-text: #00ff00;
+            --terminal-border: #333333;
+            --terminal-error: #ff0033;
+            --terminal-system: #666666;
+            --terminal-header: #1a1a1a;
+            --animation-duration: 300ms;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .terminal-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        .terminal {
+            width: 45%;
+            height: 100%;
+            border: 1px solid var(--terminal-border);
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: border-color var(--animation-duration) ease;
+        }
+
+        .terminal-header {
+            background-color: var(--terminal-header);
+            padding: 10px;
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-title {
+            font-weight: bold;
+            color: var(--terminal-text);
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .terminal-btn {
+            background-color: transparent;
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-text);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: all var(--animation-duration) ease;
+        }
+
+        .terminal-btn:hover {
+            background-color: var(--terminal-text);
+            color: var(--terminal-bg);
+        }
+
+        .terminal-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .terminal-message {
+            margin: 5px 0;
+            word-wrap: break-word;
+            opacity: 0;
+            animation: fadeIn var(--animation-duration) ease forwards;
+        }
+
+        .timestamp {
+            color: var(--terminal-system);
+            margin-right: 10px;
+        }
+
+        .sender {
+            color: var(--terminal-text);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .content {
+            color: #ffffff;
+        }
+
+        .error {
+            color: var(--terminal-error);
+        }
+
+        #void-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loader-content {
+            color: var(--terminal-text);
+            font-size: 20px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .terminal-container {
+                flex-direction: column;
+            }
+
+            .terminal {
+                width: 100%;
+                height: 45vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loader" class="loader">
+        <div class="loader-content">Initializing void...</div>
+    </div>
+
+    <canvas id="void-canvas"></canvas>
+
+    <div class="terminal-container">
+        <div id="terminal1" class="terminal">
+            <div class="terminal-header">
+                <span class="terminal-title">Terminal 1</span>
+                <div class="terminal-controls">
+                    <button class="terminal-btn clear-btn">Clear</button>
+                    <button class="terminal-btn reconnect-btn">Reconnect</button>
+                </div>
+            </div>
+            <div class="terminal-output"></div>
+        </div>
+
+        <div id="terminal2" class="terminal">
+            <div class="terminal-header">
+                <span class="terminal-title">Terminal 2</span>
+                <div class="terminal-controls">
+                    <button class="terminal-btn clear-btn">Clear</button>
+                    <button class="terminal-btn reconnect-btn">Reconnect</button>
+                </div>
+            </div>
+            <div class="terminal-output"></div>
+        </div>
+    </div>
+
+    <script>
+        window.APP_CONFIG = {
+            wsUrl: 'ws://localhost:8000',
+            reconnectInterval: 5000,
+            maxReconnectAttempts: 5
+        };
+
+        class Terminal {
+            constructor(terminalId, websocketUrl, options = {}) {
+                this.terminalId = terminalId;
+                this.websocketUrl = websocketUrl;
+                this.options = {
+                    autoReconnect: true,
+                    maxRetries: 3,
+                    ...options
+                };
+
+                this.websocket = null;
+                this.messageHistory = [];
+                this.isConnected = false;
+                this.reconnectAttempts = 0;
+
+                this.terminalElement = document.getElementById(terminalId);
+                this.outputElement = this.terminalElement.querySelector('.terminal-output');
+            }
+
+            async connect() {
+                if (this.websocket?.readyState === WebSocket.CONNECTING) {
+                    return;
+                }
+
+                try {
+                    this.websocket = new WebSocket(`${this.websocketUrl}/ws/${this.terminalId}`);
+                    this.setupWebSocketHandlers();
+                } catch (error) {
+                    this.handleConnectionError(error);
+                }
+            }
+
+            setupWebSocketHandlers() {
+                this.websocket.onopen = () => {
+                    this.isConnected = true;
+                    this.reconnectAttempts = 0;
+                    this.appendMessage('System', 'Connected to the void...', 'success');
+                };
+
+                this.websocket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    this.appendMessage(message.sender, message.content);
+                };
+
+                this.websocket.onclose = () => {
+                    this.handleDisconnection();
+                };
+
+                this.websocket.onerror = (error) => {
+                    this.handleConnectionError(error);
+                };
+            }
+
+            appendMessage(sender, content, type = 'message') {
+                const messageElement = document.createElement('div');
+                messageElement.className = `terminal-message ${type}`;
+                messageElement.innerHTML = `
+                    <span class="timestamp">[${new Date().toISOString()}]</span>
+                    <span class="sender">${this.sanitizeHTML(sender)}:</span>
+                    <span class="content">${this.sanitizeHTML(content)}</span>
+                `;
+
+                this.outputElement.appendChild(messageElement);
+                this.outputElement.scrollTop = this.outputElement.scrollHeight;
+                this.messageHistory.push({ sender, content, timestamp: new Date() });
+            }
+
+            sanitizeHTML(text) {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            async sendMessage(content) {
+                if (!this.isConnected) {
+                    console.error('Not connected to websocket');
+                    return;
+                }
+
+                try {
+                    const message = {
+                        sender: this.terminalId,
+                        content: content,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    await this.websocket.send(JSON.stringify(message));
+                } catch (error) {
+                    console.error('Failed to send message:', error);
+                    this.appendMessage('System', 'Failed to send message', 'error');
+                }
+            }
+
+            handleConnectionError(error) {
+                console.error('WebSocket error:', error);
+                this.appendMessage('System', 'Connection error occurred', 'error');
+                this.attemptReconnection();
+            }
+
+            handleDisconnection() {
+                this.isConnected = false;
+                this.appendMessage('System', 'Disconnected from the void...', 'error');
+                this.attemptReconnection();
+            }
+
+            attemptReconnection() {
+                if (this.options.autoReconnect && this.reconnectAttempts < this.options.maxRetries) {
+                    this.reconnectAttempts++;
+                    this.appendMessage('System', `Reconnecting... Attempt ${this.reconnectAttempts}`, 'system');
+                    setTimeout(() => this.connect(), this.options.reconnectInterval);
+                }
+            }
+
+            clearOutput() {
+                this.outputElement.innerHTML = '';
+                this.messageHistory = [];
+            }
+
+            reconnect() {
+                this.reconnectAttempts = 0;
+                this.connect();
+            }
+
+            destroy() {
+                if (this.websocket) {
+                    this.websocket.close();
+                }
+                this.messageHistory = [];
+            }
+        }
+
+        class VoidEffect {
+            constructor(canvasId, options = {}) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.isRunning = false;
+
+                this.options = {
+                    particleCount: window.innerWidth < 768 ? 50 : 100,
+                    fadeSpeed: 0.1,
+                    minSpeed: 0.5,
+                    maxSpeed: 1.5,
+                    minSize: 1,
+                    maxSize: 3,
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    ...options
+                };
+
+                this.boundAnimate = this.animate.bind(this);
+                this.boundHandleResize = this.handleResize.bind(this);
+
+                this.initialize();
+            }
+
+            initialize() {
+                this.handleResize();
+                this.createParticles();
+                this.setupEventListeners();
+                this.start();
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', this.boundHandleResize);
+            }
+
+            handleResize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.createParticles();
+            }
+
+            createParticles() {
+                this.particles = Array.from(
+                    { length: this.options.particleCount },
+                    () => this.createParticle()
+                );
+            }
+
+            createParticle(y = undefined) {
+                return {
+                    x: Math.random() * this.canvas.width,
+                    y: y ?? (Math.random() * this.canvas.height),
+                    speed: this.options.minSpeed + Math.random() *
+                        (this.options.maxSpeed - this.options.minSpeed),
+                    size: this.options.minSize + Math.random() *
+                        (this.options.maxSize - this.options.minSize)
+                };
+            }
+
+            start() {
+                if (!this.isRunning) {
+                    this.isRunning = true;
+                    requestAnimationFrame(this.boundAnimate);
+                }
+            }
+
+            stop() {
+                this.isRunning = false;
+            }
+
+            animate() {
+                if (!this.isRunning) return;
+
+                this.ctx.fillStyle = `rgba(0, 0, 0, ${this.options.fadeSpeed})`;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.particles.forEach(particle => {
+                    particle.y += particle.speed;
+
+                    if (particle.y > this.canvas.height) {
+                        Object.assign(particle, this.createParticle(0));
+                    }
+
+                    this.ctx.fillStyle = this.options.color;
+                    this.ctx.fillRect(
+                        Math.round(particle.x),
+                        Math.round(particle.y),
+                        particle.size,
+                        particle.size
+                    );
+                });
+
+                requestAnimationFrame(this.boundAnimate);
+            }
+
+            destroy() {
+                this.stop();
+                window.removeEventListener('resize', this.boundHandleResize);
+                this.particles = [];
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loader = document.getElementById('loader');
+
+            try {
+                const voidEffect = new VoidEffect('void-canvas');
+
+                const terminal1 = new Terminal('terminal1', window.APP_CONFIG.wsUrl, {
+                    autoReconnect: true,
+                    maxRetries: window.APP_CONFIG.maxReconnectAttempts
+                });
+
+                const terminal2 = new Terminal('terminal2', window.APP_CONFIG.wsUrl, {
+                    autoReconnect: true,
+                    maxRetries: window.APP_CONFIG.maxReconnectAttempts
+                });
+
+                // Initialize connections
+                Promise.all([
+                    terminal1.connect(),
+                    terminal2.connect()
+                ]).catch(error => {
+                    console.error('Terminal connection error:', error);
+                }).finally(() => {
+                    loader.style.display = 'none';
+                });
+
+                // Setup terminal controls
+                document.querySelectorAll('.clear-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const terminalId = e.target.closest('.terminal').id;
+                        const terminal = terminalId === 'terminal1' ? terminal1 : terminal2;
+                        terminal.clearOutput();
+                    });
+                });
+
+                document.querySelectorAll('.reconnect-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const terminalId = e.target.closest('.terminal').id;
+                        const terminal = terminalId === 'terminal1' ? terminal1 : terminal2;
+                        terminal.reconnect();
+                    });
+                });
+
+                // Handle cleanup on page unload
+                window.addEventListener('beforeunload', () => {
+                    terminal1.destroy();
+                    terminal2.destroy();
+                    voidEffect.destroy();
+                });
+
+            } catch (error) {
+                console.error('Initialization error:', error);
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
